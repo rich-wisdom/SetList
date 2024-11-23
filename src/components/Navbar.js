@@ -1,46 +1,44 @@
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-let auth, clearUser;
-try {
-  const firebaseConfig = require('../firebase/config');
-  auth = firebaseConfig.auth;
-} catch (error) {
-  console.error('Firebase config not loaded:', error);
-  auth = null;
-}
+import { auth } from '../firebase/config';
+import { signOut } from 'firebase/auth';
+import { clearUser } from '../store/slices/userSlice';
 
 const Navbar = () => {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     try {
       await signOut(auth);
       dispatch(clearUser());
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('Error signing out:', error);
     }
   };
 
   return (
-    <nav className="bg-indigo-600 text-white p-4">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold">SetList</Link>
-        
-        <div className="flex gap-4">
-          {currentUser ? (
-            <>
-              <Link to="/forum">Forum</Link>
-              <Link to="/messages">Messages</Link>
-              <Link to={`/profile/${currentUser.uid}`}>Profile</Link>
-              <button onClick={handleLogout}>Logout</button>
-            </>
-          ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          )}
+    <nav className="bg-white shadow-lg">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="text-xl font-bold">
+            SetList
+          </Link>
+          <div className="space-x-4">
+            {currentUser ? (
+              <>
+                <Link to="/profile">Profile</Link>
+                <Link to="/forum">Forum</Link>
+                <Link to="/messages">Messages</Link>
+                <button onClick={handleSignOut}>Sign Out</button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">Login</Link>
+                <Link to="/register">Register</Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>
