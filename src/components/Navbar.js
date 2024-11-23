@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { auth } from '../firebase/config';
-import { signOut } from 'firebase/auth';
-import { clearUser } from '../store/slices/userSlice';
+let auth, clearUser;
+try {
+  const firebaseConfig = require('../firebase/config');
+  auth = firebaseConfig.auth;
+} catch (error) {
+  console.error('Firebase config not loaded:', error);
+  auth = null;
+}
 
 const Navbar = () => {
   const dispatch = useDispatch();
