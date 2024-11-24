@@ -49,7 +49,7 @@ const Navbar = () => {
     <BsNavbar expand="lg" className="custom-navbar">
       <Container>
         <BsNavbar.Brand as={Link} to="/" className="fw-bold">
-          MusicApp
+          OpenMic 🎤
         </BsNavbar.Brand>
         <BsNavbar.Toggle aria-controls="basic-navbar-nav" />
         <BsNavbar.Collapse id="basic-navbar-nav">
@@ -58,6 +58,9 @@ const Navbar = () => {
               <>
                 <Nav.Link as={Link} to="/search" className="mx-2">
                   Search
+                </Nav.Link>
+                <Nav.Link as={Link} to="/forum" className="mx-2">
+                  Forum
                 </Nav.Link>
                 <Nav.Link as={Link} to="/messages" className="mx-2">
                   Messages
