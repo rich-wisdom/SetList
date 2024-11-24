@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider 
+} from 'firebase/auth';
 import { auth, db } from '../firebase/config';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/slices/userSlice';
@@ -53,22 +59,31 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
+    const provider = new GoogleAuthProvider();
 
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      
-      // Check if user exists in Firestore
+      let result;
+      try {
+        // Try popup first
+        result = await signInWithPopup(auth, provider);
+      } catch (popupError) {
+        console.log('Popup blocked, trying redirect...', popupError);
+        // If popup fails (blocked), fall back to redirect
+        await signInWithRedirect(auth, provider);
+        return; // The page will redirect and handle auth in useEffect
+      }
+
+      // Handle successful sign-in
       const userDoc = await getDoc(doc(db, 'users', result.user.uid));
       
       if (!userDoc.exists()) {
-        // Create new user profile if first time logging in with Google
+        // Create new user profile
         await setDoc(doc(db, 'users', result.user.uid), {
           uid: result.user.uid,
           email: result.user.email,
-          username: result.user.email.split('@')[0], // Default username
+          username: result.user.email.split('@')[0],
           stageName: '',
-          accountType: 'musician', // Default type
+          accountType: 'musician',
           createdAt: new Date().toISOString(),
           bio: '',
           genres: [],
@@ -87,6 +102,42 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  // Add this useEffect to handle redirect result
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result) {
+          const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+          
+          if (!userDoc.exists()) {
+            await setDoc(doc(db, 'users', result.user.uid), {
+              uid: result.user.uid,
+              email: result.user.email,
+              username: result.user.email.split('@')[0],
+              stageName: '',
+              accountType: 'musician',
+              createdAt: new Date().toISOString(),
+              bio: '',
+              genres: [],
+              instruments: [],
+              profileImage: result.user.photoURL || ''
+            });
+          }
+          
+          const userData = userDoc.exists() ? userDoc.data() : await getDoc(doc(db, 'users', result.user.uid));
+          dispatch(setUser({ ...userData, uid: result.user.uid }));
+          navigate('/profile');
+        }
+      } catch (error) {
+        console.error('Redirect result error:', error);
+        setError('Failed to complete sign in. Please try again.');
+      }
+    };
+
+    handleRedirectResult();
+  }, [dispatch, navigate]);
 
   return (
     <Container className="py-5">
