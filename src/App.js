@@ -1,55 +1,86 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { store } from './store';
+import AuthProvider from './components/AuthProvider';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import CompleteProfile from './pages/CompleteProfile';
 import Profile from './pages/Profile';
 import Forum from './pages/Forum';
 import Messages from './pages/Messages';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import PrivateRoute from './components/PrivateRoute';
+import Search from './pages/Search';
+import UserProfile from './pages/UserProfile';
+import Notifications from './pages/Notifications';
+import { Container } from 'react-bootstrap';
+import './styles/darkMode.css';
+import { useDarkMode } from './hooks/useDarkMode';
 
 function App() {
+  useDarkMode();
+  
   return (
-    <Provider store={store}>
-      <Router>
-        <div className="min-h-screen bg-gray-100">
-          <Navbar />
-          <div className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/profile/:id"
-                element={
-                  <PrivateRoute>
-                    <Profile />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/forum"
-                element={
-                  <PrivateRoute>
-                    <Forum />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/messages"
-                element={
-                  <PrivateRoute>
-                    <Messages />
-                  </PrivateRoute>
-                }
-              />
-            </Routes>
-          </div>
-        </div>
-      </Router>
-    </Provider>
+    <Router>
+      <AuthProvider>
+        <Navbar />
+        <Container fluid className="py-4">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route 
+              path="/complete-profile" 
+              element={
+                <PrivateRoute>
+                  <CompleteProfile />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/profile/:userId" 
+              element={
+                <PrivateRoute>
+                  <UserProfile />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/forum" 
+              element={
+                <PrivateRoute>
+                  <Forum />
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/messages" 
+              element={
+                <PrivateRoute>
+                  <Messages />
+                </PrivateRoute>
+              } 
+            />
+            <Route path="/search" element={<Search />} />
+            <Route 
+              path="/notifications" 
+              element={
+                <PrivateRoute>
+                  <Notifications />
+                </PrivateRoute>
+              } 
+            />
+          </Routes>
+        </Container>
+      </AuthProvider>
+    </Router>
   );
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { db } from '../firebase/config';
 import { 
@@ -12,8 +13,11 @@ import {
   doc,
   getDoc
 } from 'firebase/firestore';
+import NewThreadModal from '../components/NewThreadModal';
+import { Container, Button } from 'react-bootstrap';
 
 const Messages = () => {
+  const navigate = useNavigate();
   const { currentUser } = useSelector(state => state.user);
   const [friends, setFriends] = useState([]);
   const [selectedFriend, setSelectedFriend] = useState(null);
@@ -21,6 +25,8 @@ const Messages = () => {
   const [newMessage, setNewMessage] = useState('');
   const messagesEndRef = useRef(null);
   const [unsubscribe, setUnsubscribe] = useState(null);
+  const [threads, setThreads] = useState([]);
+  const [showNewThreadModal, setShowNewThreadModal] = useState(false);
 
   useEffect(() => {
     fetchFriends();
@@ -100,91 +106,52 @@ const Messages = () => {
     }
   };
 
+  const createNewThread = async (selectedUser) => {
+    try {
+      // Check if thread already exists
+      const existingThread = threads.find(thread => 
+        thread.participants.includes(selectedUser.uid)
+      );
+
+      if (existingThread) {
+        navigate(`/messages/${existingThread.id}`);
+        return;
+      }
+
+      // Create new thread
+      const threadRef = await addDoc(collection(db, 'chats'), {
+        participants: [currentUser.uid, selectedUser.uid],
+        createdAt: new Date().toISOString(),
+        lastMessage: null,
+        lastMessageTime: null
+      });
+
+      navigate(`/messages/${threadRef.id}`);
+    } catch (error) {
+      console.error('Error creating thread:', error);
+    }
+  };
+
   return (
-    <div className="flex h-[calc(100vh-100px)]">
-      {/* Friends list */}
-      <div className="w-1/4 border-r overflow-y-auto">
-        <h2 className="p-4 font-bold border-b">Friends</h2>
-        {friends.map(friend => (
-          <div
-            key={friend.id}
-            onClick={() => selectFriend(friend)}
-            className={`p-4 cursor-pointer hover:bg-gray-100 ${
-              selectedFriend?.id === friend.id ? 'bg-gray-100' : ''
-            }`}
-          >
-            <div className="flex items-center">
-              <img
-                src={friend.photoURL || '/default-avatar.png'}
-                alt={friend.displayName}
-                className="w-10 h-10 rounded-full mr-3"
-              />
-              <span>{friend.displayName}</span>
-            </div>
-          </div>
-        ))}
+    <Container className="py-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="h3 mb-0">Messages</h1>
+        <Button 
+          variant="primary"
+          onClick={() => setShowNewThreadModal(true)}
+        >
+          New Message
+        </Button>
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 flex flex-col">
-        {selectedFriend ? (
-          <>
-            <div className="p-4 border-b">
-              <h3 className="font-bold">{selectedFriend.displayName}</h3>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-4">
-              {messages.map(message => (
-                <div
-                  key={message.id}
-                  className={`mb-4 ${
-                    message.senderId === currentUser.uid
-                      ? 'text-right'
-                      : 'text-left'
-                  }`}
-                >
-                  <div
-                    className={`inline-block p-2 rounded-lg ${
-                      message.senderId === currentUser.uid
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-gray-200'
-                    }`}
-                  >
-                    {message.content}
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {new Date(message.createdAt).toLocaleTimeString()}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <form onSubmit={sendMessage} className="p-4 border-t">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 p-2 border rounded"
-                  placeholder="Type a message..."
-                />
-                <button
-                  type="submit"
-                  className="bg-indigo-600 text-white px-4 py-2 rounded"
-                >
-                  Send
-                </button>
-              </div>
-            </form>
-          </>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Select a friend to start chatting
-          </div>
-        )}
-      </div>
-    </div>
+      {/* Thread list */}
+      
+      <NewThreadModal
+        show={showNewThreadModal}
+        onClose={() => setShowNewThreadModal(false)}
+        onSelectUser={createNewThread}
+      />
+    </Container>
   );
 };
 

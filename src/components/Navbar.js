@@ -1,47 +1,97 @@
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navbar as BsNavbar, Nav, Container, Badge } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { auth } from '../firebase/config';
 import { signOut } from 'firebase/auth';
+import { auth } from '../firebase/config';
 import { clearUser } from '../store/slices/userSlice';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 const Navbar = () => {
+  const currentUser = useSelector(state => state.user.currentUser);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const dispatch = useDispatch();
-  const { currentUser } = useSelector((state) => state.user);
+  const navigate = useNavigate();
 
-  const handleSignOut = async () => {
+  const handleLogout = async () => {
     try {
       await signOut(auth);
       dispatch(clearUser());
+      navigate('/login');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error logging out:', error);
     }
   };
 
+  useEffect(() => {
+    const fetchUnreadNotifications = async () => {
+      if (!currentUser) return;
+      
+      try {
+        const notificationsRef = collection(db, 'notifications');
+        const q = query(
+          notificationsRef,
+          where('userId', '==', currentUser.uid),
+          where('read', '==', false)
+        );
+        const snapshot = await getDocs(q);
+        setUnreadNotifications(snapshot.size);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchUnreadNotifications();
+  }, [currentUser]);
+
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-xl font-bold">
-            SetList
-          </Link>
-          <div className="space-x-4">
+    <BsNavbar expand="lg" className="custom-navbar">
+      <Container>
+        <BsNavbar.Brand as={Link} to="/" className="fw-bold">
+          MusicApp
+        </BsNavbar.Brand>
+        <BsNavbar.Toggle aria-controls="basic-navbar-nav" />
+        <BsNavbar.Collapse id="basic-navbar-nav">
+          <Nav className="ms-auto">
             {currentUser ? (
               <>
-                <Link to="/profile">Profile</Link>
-                <Link to="/forum">Forum</Link>
-                <Link to="/messages">Messages</Link>
-                <button onClick={handleSignOut}>Sign Out</button>
+                <Nav.Link as={Link} to="/search" className="mx-2">
+                  Search
+                </Nav.Link>
+                <Nav.Link as={Link} to="/messages" className="mx-2">
+                  Messages
+                </Nav.Link>
+                <Nav.Link as={Link} to="/notifications" className="mx-2 position-relative">
+                  Notifications
+                  {unreadNotifications > 0 && (
+                    <Badge 
+                      bg="danger" 
+                      pill 
+                      className="badge-notification"
+                    >
+                      {unreadNotifications}
+                    </Badge>
+                  )}
+                </Nav.Link>
+                <Nav.Link as={Link} to="/profile" className="mx-2">
+                  Profile
+                </Nav.Link>
               </>
             ) : (
               <>
-                <Link to="/login">Login</Link>
-                <Link to="/register">Register</Link>
+                <Nav.Link as={Link} to="/login" className="mx-2">
+                  Login
+                </Nav.Link>
+                <Nav.Link as={Link} to="/register" className="mx-2">
+                  Register
+                </Nav.Link>
               </>
             )}
-          </div>
-        </div>
-      </div>
-    </nav>
+          </Nav>
+        </BsNavbar.Collapse>
+      </Container>
+    </BsNavbar>
   );
 };
 
