@@ -54,7 +54,7 @@ const NewThreadModal = ({ show, onClose, onSelectUser }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by username or name..."
-              className="message-search-input flex-grow-1"
+              className="flex-grow-1"
             />
             <Button 
               type="submit" 
