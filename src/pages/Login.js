@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { auth, db } from '../firebase/config';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/slices/userSlice';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -14,37 +15,76 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleSubmit = async (e) => {
+  const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      dispatch(setUser(userCredential.user));
-      navigate('/profile');
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (userDoc.exists()) {
+        dispatch(setUser({ ...userDoc.data(), uid: userCredential.user.uid }));
+        navigate('/profile');
+      } else {
+        setError('User profile not found. Please try again or contact support.');
+      }
     } catch (error) {
+      console.error('Login error:', error);
       switch (error.code) {
         case 'auth/invalid-credential':
           setError('Invalid email or password. Please try again.');
           break;
+        case 'auth/user-not-found':
+          setError('No account found with this email. Please register first.');
+          break;
+        case 'auth/wrong-password':
+          setError('Incorrect password. Please try again.');
+          break;
         default:
-          setError('An error occurred during login. Please try again.');
+          setError('Failed to log in. Please try again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      dispatch(setUser(result.user));
+      
+      // Check if user exists in Firestore
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      
+      if (!userDoc.exists()) {
+        // Create new user profile if first time logging in with Google
+        await setDoc(doc(db, 'users', result.user.uid), {
+          uid: result.user.uid,
+          email: result.user.email,
+          username: result.user.email.split('@')[0], // Default username
+          stageName: '',
+          accountType: 'musician', // Default type
+          createdAt: new Date().toISOString(),
+          bio: '',
+          genres: [],
+          instruments: [],
+          profileImage: result.user.photoURL || ''
+        });
+      }
+      
+      const userData = userDoc.exists() ? userDoc.data() : await getDoc(doc(db, 'users', result.user.uid));
+      dispatch(setUser({ ...userData, uid: result.user.uid }));
       navigate('/profile');
     } catch (error) {
       console.error('Google sign in error:', error);
       setError('Failed to sign in with Google. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,7 +96,7 @@ const Login = () => {
             <Card.Body className="p-4">
               <h2 className="text-center mb-4">Login to OpenMic 🎤</h2>
               {error && <Alert variant="danger">{error}</Alert>}
-              <Form onSubmit={handleSubmit}>
+              <Form onSubmit={handleEmailLogin}>
                 <Form.Group className="mb-3">
                   <Form.Label>Email</Form.Label>
                   <Form.Control
@@ -96,7 +136,7 @@ const Login = () => {
               </div>
 
               <Button 
-                onClick={handleGoogleSignIn}
+                onClick={handleGoogleLogin}
                 variant="outline-light"
                 className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
               >
