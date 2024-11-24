@@ -54,26 +54,25 @@ const NewThreadModal = ({ show, onClose, onSelectUser }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by username or name..."
-              className="flex-grow-1"
+              className="message-search-input flex-grow-1"
             />
             <Button 
               type="submit" 
-              variant="primary"
+              className="search-button"
               disabled={loading}
-              className="px-4"
             >
               {loading ? 'Searching...' : 'Search'}
             </Button>
           </Form.Group>
         </Form>
 
-        <ListGroup className="user-search-results">
+        <div className="search-results">
           {searchResults.map(user => (
-            <ListGroup.Item
-              key={user.id}
-              action
+            <div 
+              key={user.id} 
+              className="user-search-result d-flex align-items-center gap-2 p-2 border-bottom cursor-pointer"
               onClick={() => onSelectUser(user)}
-              className="d-flex align-items-center gap-3 hover-highlight"
+              style={{ cursor: 'pointer' }}
             >
               <img
                 src={user.profileImage || '/default-avatar.png'}
@@ -82,18 +81,12 @@ const NewThreadModal = ({ show, onClose, onSelectUser }) => {
                 style={{ width: '40px', height: '40px', objectFit: 'cover' }}
               />
               <div>
-                <div className="fw-bold">{user.stageName || user.username}</div>
-                <small className="text-muted">@{user.username}</small>
+                <div className="fw-bold">{user.stageName}</div>
+                <div className="text-muted">@{user.username}</div>
               </div>
-            </ListGroup.Item>
-          ))}
-
-          {searchResults.length === 0 && searchTerm && !loading && (
-            <div className="text-center py-3 text-muted">
-              No users found
             </div>
-          )}
-        </ListGroup>
+          ))}
+        </div>
       </Modal.Body>
     </Modal>
   );

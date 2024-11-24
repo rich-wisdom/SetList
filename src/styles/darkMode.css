@@ -213,4 +213,121 @@ html body.dark-mode .badge.instrument-badge.rounded-pill {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Login/Register card styles */
+body.dark-mode .auth-card {
+  background-color: #1e1e1e !important;
+  border-color: #2d2d2d !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .auth-card .card-title {
+  color: #ffffff !important;
+}
+
+body.dark-mode .auth-card .form-label {
+  color: #ffffff !important;
+}
+
+body.dark-mode .auth-card .form-control {
+  background-color: #2d2d2d !important;
+  border-color: #404040 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .auth-card .form-control:focus {
+  border-color: #2163ff !important;
+  box-shadow: 0 0 0 0.25rem rgba(2, 41, 132, 0.25) !important;
+}
+
+/* Navbar toggle button in dark mode */
+body.dark-mode .navbar-toggler {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.dark-mode .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+}
+
+body.dark-mode .navbar-toggler:focus {
+  box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Modal styles for dark mode */
+body.dark-mode .modal-content {
+  background-color: #1e1e1e !important;
+  border-color: #2d2d2d !important;
+}
+
+body.dark-mode .modal-header {
+  border-bottom-color: #2d2d2d !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .modal-footer {
+  border-top-color: #2d2d2d !important;
+}
+
+body.dark-mode .modal-title {
+  color: #ffffff !important;
+}
+
+/* Search results in modal */
+body.dark-mode .list-group-item {
+  background-color: #1e1e1e !important;
+  border-color: #2d2d2d !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .list-group-item:hover {
+  background-color: #2d2d2d !important;
+}
+
+/* Close button */
+body.dark-mode .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%) !important;
+}
+
+/* Search input in modal */
+body.dark-mode .modal .form-control {
+  background-color: #2d2d2d !important;
+  border-color: #404040 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode .modal .form-control:focus {
+  border-color: #4b6cb7 !important;
+  box-shadow: 0 0 0 0.25rem rgba(75, 108, 183, 0.25) !important;
+}
+
+/* User search results */
+body.dark-mode .modal .user-search-result {
+  color: #ffffff !important;
+}
+
+body.dark-mode .modal .text-muted {
+  color: #a0a0a0 !important;
+}
+
+/* New message modal search input - light background for all themes */
+.modal .message-search-input {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ced4da !important;
+}
+
+.modal .message-search-input::placeholder {
+  color: #6c757d !important;
+}
+
+.modal .message-search-input:focus {
+  border-color: #86b7fe !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Override dark mode styles for this specific input */
+body.dark-mode .modal .message-search-input {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
   
