@@ -1,66 +1,50 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { auth, googleProvider, db } from '../firebase/config';
-import { 
-  signInWithEmailAndPassword, 
-  signInWithPopup,
-  GoogleAuthProvider 
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { setUser } from '../store/slices/userSlice';
+import { useNavigate, Link } from 'react-router-dom';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '../firebase/config';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/slices/userSlice';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const dispatch = useDispatch();
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleEmailLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
-      dispatch(setUser(userDoc.data()));
-      navigate('/');
+      dispatch(setUser(userCredential.user));
+      navigate('/profile');
     } catch (error) {
-      setError(error.message);
+      switch (error.code) {
+        case 'auth/invalid-credential':
+          setError('Invalid email or password. Please try again.');
+          break;
+        default:
+          setError('An error occurred during login. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleSignIn = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      
-      // Check if user exists in our database
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-      
-      if (!userDoc.exists()) {
-        // Create minimal user profile
-        const initialUserData = {
-          uid: user.uid,
-          email: user.email,
-          username: user.email.split('@')[0], // temporary username
-          needsProfile: true,
-          createdAt: new Date().toISOString()
-        };
-        
-        await setDoc(userDocRef, initialUserData);
-        dispatch(setUser(initialUserData));
-        navigate('/complete-profile');
-      } else {
-        dispatch(setUser(userDoc.data()));
-        navigate('/');
-      }
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      dispatch(setUser(result.user));
+      navigate('/profile');
     } catch (error) {
-      if (error.code !== 'auth/cancelled-popup-request') {
-        setError(error.message);
-      }
+      console.error('Google sign in error:', error);
+      setError('Failed to sign in with Google. Please try again.');
     }
   };
 
@@ -70,54 +54,65 @@ const Login = () => {
         <Col md={6}>
           <Card className="auth-card shadow">
             <Card.Body className="p-4">
-              <h2 className="text-center mb-4">Login</h2>
+              <h2 className="text-center mb-4">Login to OpenMic 🎤</h2>
               {error && <Alert variant="danger">{error}</Alert>}
-              <Form onSubmit={handleEmailLogin} className="space-y-4">
-                <div>
-                  <label className="block mb-1">Email</label>
-                  <input
+              <Form onSubmit={handleSubmit}>
+                <Form.Group className="mb-3">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-2 border rounded"
                     required
+                    placeholder="Enter your email"
                   />
-                </div>
+                </Form.Group>
 
-                <div>
-                  <label className="block mb-1">Password</label>
-                  <input
+                <Form.Group className="mb-3">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-2 border rounded"
                     required
+                    placeholder="Enter your password"
                   />
-                </div>
+                </Form.Group>
 
-                <button 
-                  type="submit"
-                  className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+                <Button 
+                  type="submit" 
+                  className="w-100 mb-3"
+                  variant="primary"
+                  disabled={loading}
                 >
-                  Login
-                </button>
+                  {loading ? 'Logging in...' : 'Login'}
+                </Button>
               </Form>
 
-              <div className="mt-4 text-center">
-                <span className="text-gray-500">or</span>
+              <div className="text-center my-3">
+                <div className="divider d-flex align-items-center justify-content-center">
+                  <span className="px-2 text-muted">OR</span>
+                </div>
               </div>
 
-              <button
-                onClick={handleGoogleLogin}
-                className="w-full mt-4 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-50 flex items-center justify-center gap-2"
+              <Button 
+                onClick={handleGoogleSignIn}
+                variant="outline-light"
+                className="w-100 mb-3 d-flex align-items-center justify-content-center gap-2"
               >
                 <img 
-                  src="/icons/google.png" 
-                  alt="Google" 
-                  className="w-5 h-5"
+                  src="https://www.google.com/favicon.ico"
+                  alt="Google"
+                  style={{ width: '20px', height: '20px' }}
                 />
-                Continue with Google
-              </button>
+                Sign in with Google
+              </Button>
+
+              <div className="text-center">
+                <Link to="/register" className="text-decoration-none">
+                  Need an account? Register
+                </Link>
+              </div>
             </Card.Body>
           </Card>
         </Col>

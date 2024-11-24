@@ -51,9 +51,10 @@ const Search = () => {
         />
         <Button 
           type="submit"
-          className="search-button"
+          className="purple-gradient-button"
+          disabled={loading}
         >
-          Search
+          {loading ? 'Searching...' : 'Search'}
         </Button>
       </Form>
 

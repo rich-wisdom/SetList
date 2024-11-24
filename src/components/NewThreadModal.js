@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Modal, Form, Button, ListGroup } from 'react-bootstrap';
 import { db } from '../firebase/config';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import Username from './Username';
+import { Link } from 'react-router-dom';
 
 const NewThreadModal = ({ show, onClose, onSelectUser }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +56,7 @@ const NewThreadModal = ({ show, onClose, onSelectUser }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by username or name..."
-              className="flex-grow-1"
+              className="message-search-input flex-grow-1"
             />
             <Button 
               type="submit" 
@@ -70,19 +72,21 @@ const NewThreadModal = ({ show, onClose, onSelectUser }) => {
           {searchResults.map(user => (
             <div 
               key={user.id} 
-              className="user-search-result d-flex align-items-center gap-2 p-2 border-bottom cursor-pointer"
+              className="user-search-result d-flex align-items-center gap-2 p-2 border-bottom"
               onClick={() => onSelectUser(user)}
               style={{ cursor: 'pointer' }}
             >
-              <img
-                src={user.profileImage || '/default-avatar.png'}
-                alt={user.username}
-                className="rounded-circle"
-                style={{ width: '40px', height: '40px', objectFit: 'cover' }}
-              />
+              <Link to={`/profile/${user.uid}`} onClick={(e) => e.stopPropagation()}>
+                <img
+                  src={user.profileImage || '/default-avatar.png'}
+                  alt="Profile"
+                  className="rounded-circle profile-image-link"
+                  style={{ width: '40px', height: '40px', objectFit: 'cover' }}
+                />
+              </Link>
               <div>
                 <div className="fw-bold">{user.stageName}</div>
-                <div className="text-muted">@{user.username}</div>
+                <Username uid={user.uid} username={user.username} />
               </div>
             </div>
           ))}

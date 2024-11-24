@@ -117,13 +117,25 @@ const Forum = () => {
           onChange={(e) => setNewPost(e.target.value)}
           className="w-full p-4 border rounded"
           placeholder="Share your thoughts..."
-          rows="3"
+          rows="1"
+          style={{
+            backgroundColor: '#ffffff',
+            color: '#000000',
+            border: '1px solid #ced4da',
+            borderRadius: '4px',
+            resize: 'none'
+          }}
         />
         <button 
           type="submit"
-          className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded"
+          className="purple-gradient-button px-4"
+          style={{ 
+            minWidth: '100px',
+            height: '38px'
+          }}
+          disabled={!newPost.trim()}
         >
-          Post
+          {newPost.trim() ? 'Post' : 'Post'}
         </button>
       </form>
 
