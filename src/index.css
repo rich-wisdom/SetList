@@ -15,3 +15,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Override Bootstrap dark mode text colors */
+[data-bs-theme="dark"] .text-body,
+[data-bs-theme="dark"] .card-text,
+[data-bs-theme="dark"] .card-title {
+  color: #ffffff !important;
+}
+
+/* Custom navbar gradient */
+.custom-navbar {
+  background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.custom-navbar .navbar-brand,
+.custom-navbar .nav-link {
+  color: #ffffff !important;
+}
+
+/* Hover effect for nav links */
+.custom-navbar .nav-link:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
